@@ -1,0 +1,42 @@
+image: google/cloud-sdk:alpine
+
+deploy_develop:
+  stage: deploy
+  environment: develop
+  only:
+  - develop
+  script:
+  - echo $SERVICE_ACCOUNT_DEVELOPMENT > /tmp/$CI_PIPELINE_ID.json
+  - cp $ENVIRONMENT_FILE_DEVELOPMENT .env
+  - gcloud auth activate-service-account --key-file /tmp/$CI_PIPELINE_ID.json
+  - apk add nodejs-current nodejs-npm
+  - npm install
+  - CI=false npm run build && gsutil cp -r build/* gs://$PROJECT_ID_DEVELOPMENT
+  
+deploy_staging:
+  stage: deploy
+  environment: staging
+  only:
+  - staging
+  script:
+  - echo $SERVICE_ACCOUNT_STAGING > /tmp/$CI_PIPELINE_ID.json
+  - cp $ENVIRONMENT_FILE_STAGING .env
+  - gcloud auth activate-service-account --key-file /tmp/$CI_PIPELINE_ID.json
+  - apk add nodejs-current nodejs-npm
+  - npm install
+  - CI=false npm run build && gsutil cp -r build/* gs://$PROJECT_ID_STAGING
+    
+  
+deploy_production:
+  stage: deploy
+  environment: production
+  only:
+  - master
+  script:
+  - echo $SERVICE_ACCOUNT_PRODUCTION > /tmp/$CI_PIPELINE_ID.json
+  - cp $ENVIRONMENT_FILE_PRODUCTION .env
+  - gcloud auth activate-service-account --key-file /tmp/$CI_PIPELINE_ID.json
+  - apk add nodejs-current nodejs-npm
+  - npm install
+  - CI=false npm run build && gsutil cp -r build/* gs://$PROJECT_ID_PRODUCTION
+  
